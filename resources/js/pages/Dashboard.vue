@@ -1,23 +1,54 @@
 <script setup>
-import { ref } from 'vue';
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
+import { Head, Link, usePage, router } from '@inertiajs/vue3';
 import RegisterDeviceModal from '@/Components/RegisterDeviceModal.vue';
+import ViewDeviceModal from '@/Components/ViewDeviceModal.vue';
 
-defineProps({
+const props = defineProps({
     devices: {
         type: Array,
-        default: () => [
-            { id: 1, name: 'Samsung S26', capacity: '8/256', endDate: '12/12/2026', status: 'Activa' },
-            { id: 2, name: 'POCO X8 PRO', capacity: '8/256', endDate: '12/08/2026', status: 'Vencida' },
-            { id: 3, name: 'Xiaomi NOTE 15', capacity: '6/128', endDate: '12/12/2026', status: 'Por Vencer' }
-        ]
+        default: () => []
+    },
+    marcas: {
+        type: Array,
+        default: () => []
+    },
+    modelos: {
+        type: Array,
+        default: () => []
+    },
+    tiendas: {
+        type: Array,
+        default: () => []
     }
 });
 
 const user = usePage().props.auth.user;
 
-// Estado reactivo para controlar el modal
+const selectedDevice = ref(null);
+const isViewModalOpen = ref(false);
 const isModalOpen = ref(false);
+
+// Estado para almacenar el filtro seleccionado
+const selectedFilter = ref('todos');
+
+// Propiedad computada para filtrar dinámicamente la lista
+const filteredDevices = computed(() => {
+    if (selectedFilter.value === 'todos') {
+        return props.devices;
+    }
+    return props.devices.filter(device => device.status === selectedFilter.value);
+});
+
+// Handler para refrescar los datos cuando se agregue un equipo
+const handleDeviceAdded = () => {
+    router.reload({ only: ['devices'] });
+};
+
+const handleViewDevice = (device) => {
+    selectedDevice.value = device;
+    isViewModalOpen.value = true;
+};
 </script>
 
 <template>
@@ -72,11 +103,15 @@ const isModalOpen = ref(false);
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-xl font-bold text-gray-900">Tus Dispositivos Registrados</h2>
                     <div class="relative">
-                        <select class="appearance-none bg-gray-100 border border-gray-300 text-gray-700 font-medium py-2 px-6 pr-10 rounded-full leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm">
-                            <option>Filtrar</option>
-                            <option>Garantía Activa</option>
-                            <option>Vencida</option>
-                            <option>Por Vencer</option>
+                        <!-- v-model conectado a selectedFilter -->
+                        <select 
+                            v-model="selectedFilter" 
+                            class="appearance-none bg-gray-100 border border-gray-300 text-gray-700 font-medium py-2 px-6 pr-10 rounded-full leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm cursor-pointer"
+                        >
+                            <option value="todos">Todos los estados</option>
+                            <option value="Activa">Garantía Activa</option>
+                            <option value="Por Vencer">Por Vencer</option>
+                            <option value="Vencida">Vencida</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-700">
                             <svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l0.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
@@ -84,16 +119,16 @@ const isModalOpen = ref(false);
                     </div>
                 </div>
 
-                <!-- Lista de Tarjetas -->
+                <!-- Lista de Tarjetas (Iterando sobre filteredDevices) -->
                 <div class="space-y-4 max-w-4xl">
                     <div 
-                        v-for="device in devices" 
+                        v-for="device in filteredDevices" 
                         :key="device.id" 
                         class="bg-white rounded-xl p-5 border border-gray-100 shadow-md flex items-center justify-between"
                     >
                         <div class="space-y-1 text-sm text-gray-800">
                             <p><span class="font-bold">Dispositivo:</span> {{ device.name }}</p>
-                            <p><span class="font-bold">Capacidad:</span> {{ device.capacity }}</p>
+                            <p><span class="font-bold">Capacidad:</span> {{ device.capacity?.ram || 'N/A' }}/{{ device.capacity?.memoria || 'N/A' }}</p>
                             <p><span class="font-bold">Fecha fin garantía:</span> {{ device.endDate }}</p>
                         </div>
 
@@ -122,14 +157,25 @@ const isModalOpen = ref(false);
                             </span>
 
                             <!-- Botón Visualizar -->
-                            <button class="bg-[#243c7a] hover:bg-[#1a2d5d] text-white text-sm font-semibold px-8 py-2.5 rounded-xl transition duration-150 shadow-sm">
+                            <button 
+                                @click="handleViewDevice(device)"
+                                class="bg-[#243c7a] hover:bg-[#1a2d5d] text-white text-sm font-semibold px-8 py-2.5 rounded-xl transition duration-150 shadow-sm"
+                            >
                                 Visualizar
                             </button>
                         </div>
                     </div>
+
+                    <!-- Estado Vacío cuando no coincida ningún filtro -->
+                    <div 
+                        v-if="filteredDevices.length === 0" 
+                        class="bg-white rounded-xl p-8 border border-gray-100 shadow-md text-center text-gray-500"
+                    >
+                        <p class="text-base font-medium">No se encontraron equipos para este filtro.</p>
+                    </div>
                 </div>
 
-                <!-- Botón Flotante "+" (Abre el modal) -->
+                <!-- Botón Flotante "+" -->
                 <button 
                     @click="isModalOpen = true"
                     class="fixed bottom-8 right-8 bg-[#3177bb] hover:bg-[#256098] text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl font-light transition duration-200"
@@ -139,10 +185,20 @@ const isModalOpen = ref(false);
             </main>
         </div>
 
-        <!-- Instancia del Modal Componentizado -->
+        <!-- Instancia de los Modales -->
         <RegisterDeviceModal 
             :show="isModalOpen" 
+            :marcas="marcas" 
+            :modelos="modelos" 
+            :tiendas="tiendas" 
             @close="isModalOpen = false" 
+            @add-device="handleDeviceAdded" 
+        />
+
+        <ViewDeviceModal 
+            :show="isViewModalOpen" 
+            :device="selectedDevice" 
+            @close="isViewModalOpen = false" 
         />
     </div>
 </template>

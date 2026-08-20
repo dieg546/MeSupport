@@ -1,55 +1,70 @@
 <script setup>
-import { ref, reactive } from 'vue';
+import { ref, computed } from 'vue';
+import { useForm } from '@inertiajs/vue3';
 
 const props = defineProps({
     show: {
         type: Boolean,
         default: false,
     },
+    marcas: {
+        type: Array,
+        default: () => [],
+    },
+    modelos: {
+        type: Array,
+        default: () => [],
+    },
+    tiendas: {
+        type: Array,
+        default: () => [],
+    },
 });
 
-// Eventos que emite el modal
 const emit = defineEmits(['close', 'add-device']);
 
-// Estado para alternar entre el formulario y el mensaje de éxito
 const isSuccess = ref(false);
 
-// Objeto reactivo local para los campos del formulario
-const form = reactive({
+// Instancia de useForm alineada con las columnas/inputs
+const form = useForm({
     brand: '',
-    model: '',
-    store: '',
-    serial: '',
-    imei: '',
-    purchase_date: '',
+    id_modelo: '',
+    id_tienda: '',
+    serial_equipo: '',
+    imei_equipo: '',
+    fecha_compra: '',
 });
 
+// Computed para filtrar modelos según la marca seleccionada
+const modelosFiltrados = computed(() => {
+    if (!form.brand) return [];
+
+    return props.modelos.filter((m) => {
+        const marcaIdEnModelo = m.id_marca ?? m.marca_id;
+        return String(marcaIdEnModelo) === String(form.brand);
+    });
+});
+
+// Resetea el modelo al cambiar de marca
+const handleBrandChange = () => {
+    form.id_modelo = '';
+};
+
+// Envío a Laravel
 const submitDevice = () => {
-    // 1. Emitir los datos formateados al componente padre (Dashboard)
-    emit('add-device', {
-        id: Date.now(),
-        name: `${form.brand} ${form.model}`,
-        capacity: '8/256',
-        endDate: '12/12/2027',
-        status: 'Activa',
+    form.post(route('equipos.store'), {
+        preserveScroll: true,
+        onSuccess: () => {
+            isSuccess.value = true;
+            emit('add-device');
+            form.reset();
+        },
     });
-
-    // 2. Limpiar el formulario
-    Object.assign(form, {
-        brand: '',
-        model: '',
-        store: '',
-        serial: '',
-        imei: '',
-        purchase_date: '',
-    });
-
-    // 3. Mostrar la vista de éxito
-    isSuccess.value = true;
 };
 
 const handleClose = () => {
-    isSuccess.value = false; // Resetear la vista para la próxima apertura
+    isSuccess.value = false;
+    form.clearErrors();
     emit('close');
 };
 </script>
@@ -60,7 +75,7 @@ const handleClose = () => {
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
         @click.self="handleClose"
     >
-        <!-- PANTALLA 1: FORMULARIO -->
+        <!-- FORMULARIO -->
         <div 
             v-if="!isSuccess" 
             class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative font-['Poppins',sans-serif]"
@@ -78,97 +93,132 @@ const handleClose = () => {
             <h2 class="text-2xl font-black text-center text-gray-900 mb-6">Registro Dispositivo</h2>
 
             <form @submit.prevent="submitDevice" class="space-y-4">
-                <div class="relative">
-                    <select 
-                        v-model="form.brand"
-                        class="w-full px-5 py-3 bg-[#f5f5f5] border border-gray-200 rounded-full text-gray-700 text-sm font-bold appearance-none focus:outline-none focus:bg-white focus:border-blue-500 transition"
-                        required
-                    >
-                        <option value="" disabled selected>Marca</option>
-                        <option value="Samsung">Samsung</option>
-                        <option value="Xiaomi">Xiaomi</option>
-                        <option value="Apple">Apple</option>
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-5 text-gray-600">
-                        <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.293 12.95l0.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                    </div>
-                </div>
-
-                <div class="relative">
-                    <select 
-                        v-model="form.model"
-                        class="w-full px-5 py-3 bg-[#f5f5f5] border border-gray-200 rounded-full text-gray-700 text-sm font-bold appearance-none focus:outline-none focus:bg-white focus:border-blue-500 transition"
-                        required
-                    >
-                        <option value="" disabled selected>Modelo</option>
-                        <option value="S26">S26</option>
-                        <option value="POCO X8 PRO">POCO X8 PRO</option>
-                        <option value="NOTE 15">NOTE 15</option>
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-5 text-gray-600">
-                        <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.293 12.95l0.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                    </div>
-                </div>
-
-                <div class="relative">
-                    <select 
-                        v-model="form.store"
-                        class="w-full px-5 py-3 bg-[#f5f5f5] border border-gray-200 rounded-full text-gray-700 text-sm font-bold appearance-none focus:outline-none focus:bg-white focus:border-blue-500 transition"
-                        required
-                    >
-                        <option value="" disabled selected>Tienda</option>
-                        <option value="Tienda Oficial">Tienda Oficial</option>
-                        <option value="Distribuidor Autorizado">Distribuidor Autorizado</option>
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-5 text-gray-600">
-                        <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.293 12.95l0.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                    </div>
-                </div>
-
+                <!-- SELECT MARCA -->
                 <div>
+                    <div class="relative">
+                        <select 
+                            v-model="form.brand"
+                            @change="handleBrandChange"
+                            class="w-full px-5 py-3 bg-[#f5f5f5] border border-gray-200 rounded-full text-gray-700 text-sm font-bold appearance-none focus:outline-none focus:bg-white focus:border-blue-500 transition"
+                            required
+                        >
+                            <option value="" disabled>Marca</option>
+                            <option 
+                                v-for="marca in marcas" 
+                                :key="marca.id_marca" 
+                                :value="marca.id_marca"
+                            >
+                                {{ marca.nombre_marca }}
+                            </option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-5 text-gray-600">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.293 12.95l0.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SELECT MODELO -->
+                <div>
+                    <div class="relative">
+                        <select 
+                            v-model="form.id_modelo"
+                            :disabled="!form.brand"
+                            class="w-full px-5 py-3 bg-[#f5f5f5] border border-gray-200 rounded-full text-gray-700 text-sm font-bold appearance-none focus:outline-none focus:bg-white focus:border-blue-500 transition disabled:opacity-50"
+                            required
+                        >
+                            <option value="" disabled>
+                                {{ form.brand ? 'Modelo' : 'Seleccione una Marca primero' }}
+                            </option>
+                            <option 
+                                v-for="modelo in modelosFiltrados" 
+                                :key="modelo.id_modelo" 
+                                :value="modelo.id_modelo"
+                            >
+                                {{ modelo.nombre_modelo }}
+                            </option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-5 text-gray-600">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.293 12.95l0.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                        </div>
+                    </div>
+                    <span v-if="form.errors.id_modelo" class="text-xs text-red-500 ml-3 mt-1 block">{{ form.errors.id_modelo }}</span>
+                </div>
+
+                <!-- SELECT TIENDA -->
+                <div>
+                    <div class="relative">
+                        <select 
+                            v-model="form.id_tienda"
+                            class="w-full px-5 py-3 bg-[#f5f5f5] border border-gray-200 rounded-full text-gray-700 text-sm font-bold appearance-none focus:outline-none focus:bg-white focus:border-blue-500 transition"
+                            required
+                        >
+                            <option value="" disabled>Tienda</option>
+                            <option 
+                                v-for="tienda in tiendas" 
+                                :key="tienda.id_tienda" 
+                                :value="tienda.id_tienda"
+                            >
+                                {{ tienda.nombre_tienda }}
+                            </option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-5 text-gray-600">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.293 12.95l0.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                        </div>
+                    </div>
+                    <span v-if="form.errors.id_tienda" class="text-xs text-red-500 ml-3 mt-1 block">{{ form.errors.id_tienda }}</span>
+                </div>
+
+                <!-- SERIAL -->
+                <!-- <div>
                     <label class="block text-xs font-bold text-gray-800 mb-1 ml-2">Serial Dispositivo</label>
                     <input 
-                        v-model="form.serial"
+                        v-model="form.serial_equipo"
                         type="text" 
                         placeholder="Ingresa el serial del dispositivo."
                         class="w-full px-5 py-2.5 bg-[#f5f5f5] border border-gray-200 rounded-full text-xs placeholder-gray-400 focus:outline-none focus:bg-white focus:border-blue-500 transition"
                         required
                     />
-                </div>
+                    <span v-if="form.errors.serial_equipo" class="text-xs text-red-500 ml-3 mt-1 block">{{ form.errors.serial_equipo }}</span>
+                </div> -->
 
+                <!-- IMEI -->
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-1 ml-2">IMEI</label>
                     <input 
-                        v-model="form.imei"
+                        v-model="form.imei_equipo"
                         type="text" 
-                        placeholder="Ingresa el serial del dispositivo."
+                        placeholder="Ingresa el IMEI del dispositivo."
                         class="w-full px-5 py-2.5 bg-[#f5f5f5] border border-gray-200 rounded-full text-xs placeholder-gray-400 focus:outline-none focus:bg-white focus:border-blue-500 transition"
                         required
                     />
+                    <span v-if="form.errors.imei_equipo" class="text-xs text-red-500 ml-3 mt-1 block">{{ form.errors.imei_equipo }}</span>
                 </div>
 
+                <!-- FECHA DE COMPRA -->
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-1 ml-2">Fecha de la compra</label>
                     <input 
-                        v-model="form.purchase_date"
+                        v-model="form.fecha_compra"
                         type="date" 
                         class="w-full px-5 py-2.5 bg-[#f5f5f5] border border-gray-200 rounded-full text-xs text-gray-600 focus:outline-none focus:bg-white focus:border-blue-500 transition"
                         required
                     />
+                    <span v-if="form.errors.fecha_compra" class="text-xs text-red-500 ml-3 mt-1 block">{{ form.errors.fecha_compra }}</span>
                 </div>
 
                 <div class="pt-4 flex justify-center">
                     <button 
                         type="submit"
-                        class="w-full max-w-xs py-3 bg-[#243c7a] hover:bg-[#1a2d5d] text-white font-semibold text-sm rounded-2xl shadow-md transition duration-200"
+                        :disabled="form.processing"
+                        class="w-full max-w-xs py-3 bg-[#243c7a] hover:bg-[#1a2d5d] text-white font-semibold text-sm rounded-2xl shadow-md transition duration-200 disabled:opacity-50"
                     >
-                        Agregar Dispositivo
+                        {{ form.processing ? 'Guardando...' : 'Agregar Dispositivo' }}
                     </button>
                 </div>
             </form>
         </div>
 
-        <!-- PANTALLA 2: ÉXITO -->
+        <!-- PANTALLA ÉXITO -->
         <div 
             v-else 
             class="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl flex items-center justify-between gap-6 font-['Poppins',sans-serif]"
