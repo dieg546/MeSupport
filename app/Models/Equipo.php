@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\SolicitudGarantia;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -35,4 +36,12 @@ class Equipo extends Model
     {
         return $this->belongsTo(Tienda::class, 'id_tienda');
     }
+
+    // app/Models/Equipo.php
+
+    public function solicitudesGarantia()
+    {
+        return $this->hasMany(SolicitudGarantia::class, 'id_equipo', 'id_equipo');
+    }
+
 }
