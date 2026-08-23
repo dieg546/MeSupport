@@ -43,5 +43,5 @@ class Equipo extends Model
     {
         return $this->hasMany(SolicitudGarantia::class, 'id_equipo', 'id_equipo');
     }
-
+    
 }

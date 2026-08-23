@@ -22,7 +22,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'password','rol'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -46,5 +46,10 @@ class User extends Authenticatable
     {
         // Ajusta 'id_usuario' si la clave foránea en tu tabla 'equipos' tiene un nombre distinto
         return $this->hasMany(Equipo::class, 'id_cliente'); 
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->rol === 'admin';
     }
 }

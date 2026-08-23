@@ -21,6 +21,10 @@ class SolicitudGarantia extends Model
         'descripcion_falla',
     ];
 
+    public function estadoActual()
+    {
+        return $this->belongsTo(EstadoGarantia::class, 'id_estado_actual', 'id_estado');
+    }
     /**
      * Relación con el Equipo
      */

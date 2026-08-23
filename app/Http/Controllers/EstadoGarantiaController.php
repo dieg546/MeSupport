@@ -41,4 +41,25 @@ class EstadoGarantiaController extends Controller
             'filtro'      => $estadoFiltro ?? '',
         ]);
     }
+
+
+    public function show($id)
+    {
+        // Carga la solicitud con la información del equipo y su estado actual
+        $solicitud = SolicitudGarantia::with(['equipo.modelo.marca', 'estadoActual'])
+            ->findOrFail($id);
+
+        return Inertia::render('DetalleGarantia', [
+            'solicitud' => [
+                'id_solicitud'   => $solicitud->id_solicitud,
+                'ticket'         => 'Ticket-2024-' . $solicitud->id_solicitud,
+                'equipo'         => trim(($solicitud->equipo->modelo->marca->nombre_marca ?? '') . ' ' . ($solicitud->equipo->modelo->nombre_modelo ?? '')),
+                'falla'          => $solicitud->descripcion_falla,
+                'fecha_revision' => $solicitud->updated_at ? $solicitud->updated_at->format('d/m/Y') : 'Pendiente',
+                'observacion'    => $solicitud->observacion ?? 'El dispositivo si presenta la falla, viene generada a un defecto de fabrica, dicho defecto es la falta de soldadura en un componente clave del pin de carga.',
+                'estado'         => $solicitud->estadoActual->nombre_estado ?? 'En Revision',
+            ]
+        ]);
+    }
+
 }

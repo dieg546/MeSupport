@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\EquipoController;
 use App\Http\Controllers\EstadoGarantiaController;
 use App\Http\Controllers\GarantiaController;
@@ -11,12 +12,16 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-// Dashboard
-Route::get('/dashboard', [EquipoController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+// Dashboard inteligente: redirige según el rol del usuario
+Route::get('/dashboard', function () {
+    if (auth()->user()->rol === 'admin') {
+        return redirect()->route('admin.dashboard');
+    }
 
-// Rutas Autenticadas
+    return app(EquipoController::class)->index();
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+// Rutas Autenticadas (Cliente y Comunes)
 Route::middleware('auth')->group(function () {
     // Perfil
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -33,6 +38,19 @@ Route::middleware('auth')->group(function () {
 
     // Estado de Garantías
     Route::get('/estado-garantias', [EstadoGarantiaController::class, 'index'])->name('estado-garantias.index');
+    Route::get('/estado-garantias/{id}', [EstadoGarantiaController::class, 'show'])->name('estado-garantias.show');
+});
+
+// Ruta protegida únicamente para Administradores
+// Ruta protegida únicamente para Administradores
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    // Genera URL: /admin/dashboard | Nombre: admin.dashboard
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    
+    // Genera URL: /admin/equipos | Nombre: admin.dashboard.equipos.store
+    Route::post('/equipos', [AdminDashboardController::class, 'store'])->name('dashboard.equipos.store');
+
+    Route::get('/solicitudes/{id}', [AdminDashboardController::class, 'show'])->name('solicitudes.show');
 });
 
 require __DIR__.'/auth.php';

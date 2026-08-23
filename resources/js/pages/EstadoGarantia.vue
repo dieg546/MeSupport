@@ -119,7 +119,7 @@ const getDotClasses = (estado) => {
                     <!-- Botón Ver Detalle -->
                     <div>
                         <Link 
-                            :href="route('garantias.index')" 
+                            :href="route('estado-garantias.show', item.id_solicitud || item.id)" 
                             class="text-xs font-black text-black hover:text-blue-600 flex items-center gap-1 transition"
                         >
                             Ver Detalle &rsaquo;
