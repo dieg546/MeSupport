@@ -44,6 +44,7 @@ class AdminDashboardController extends Controller
             'equipo.modelo.marca',
             'equipo.modelo.capacidad',
             'equipo.cliente',
+            'estadoActual', // Carga de la relación con el estado actual
             'adjuntos'
         ])->findOrFail($id);
 
@@ -84,6 +85,11 @@ class AdminDashboardController extends Controller
                 'fecha_compra'       => $fechaCompra,
                 'fecha_fin_garantia' => $fechaFinGarantia,
                 'evidencias_url'     => $evidenciasUrl,
+                
+                // Atributos del estado necesarios para la vista en Vue
+                'estado_id'          => $solicitud->id_estado_actual,
+                'estado'             => $solicitud->estadoActual?->nombre_estado ?? 'Abierta',
+                'observacion'        => $solicitud->observaciones ?? null,
             ]
         ]);
     }

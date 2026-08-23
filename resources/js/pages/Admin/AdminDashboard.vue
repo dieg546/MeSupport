@@ -29,24 +29,46 @@ const props = defineProps({
 });
 
 const getBadgeClass = (estado) => {
-    switch (estado?.toLowerCase()) {
-        case 'abierta':
-            return 'bg-[#dbeafe] text-[#2563eb]';
-        case 'en revision':
-        case 'en revisión':
-            return 'bg-[#ffedd5] text-[#c2410c]';
+    switch (estado) {
+        case 'Abierta':
+            return 'bg-[#dbeafe] text-[#2563eb]'; // Azul
+        case 'En Revision':
+            return 'bg-[#ffedd5] text-[#c2410c]'; // Naranja
+        case 'Finalizada':
+            return 'bg-[#d1fae5] text-[#065f46]'; // Verde
+        case 'Rechazada':
+            return 'bg-[#fee2e2] text-[#991b1b]'; // Rojo
+        case 'En Taller':
+            return 'bg-[#f3e8ff] text-[#6b21a8]'; // Morado
+        case 'Esperando Repuesto':
+            return 'bg-[#fef9c3] text-[#854d0e]'; // Amarillo
+        case 'Reemplazo Autorizado':
+            return 'bg-[#e0e7ff] text-[#3730a3]'; // Índigo
+        case 'Listo para Entrega':
+            return 'bg-[#ccfbf1] text-[#0f766e]'; // Cyan/Teal
         default:
             return 'bg-gray-100 text-gray-700';
     }
 };
 
 const getDotClass = (estado) => {
-    switch (estado?.toLowerCase()) {
-        case 'abierta':
+    switch (estado) {
+        case 'Abierta':
             return 'bg-[#2563eb]';
-        case 'en revision':
-        case 'en revisión':
+        case 'En Revision':
             return 'bg-[#ea580c]';
+        case 'Finalizada':
+            return 'bg-[#059669]';
+        case 'Rechazada':
+            return 'bg-[#dc2626]';
+        case 'En Taller':
+            return 'bg-[#9333ea]';
+        case 'Esperando Repuesto':
+            return 'bg-[#ca8a04]';
+        case 'Reemplazo Autorizado':
+            return 'bg-[#4f46e5]';
+        case 'Listo para Entrega':
+            return 'bg-[#0d9488]';
         default:
             return 'bg-gray-500';
     }

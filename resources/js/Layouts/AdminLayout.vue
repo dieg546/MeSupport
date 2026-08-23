@@ -53,25 +53,20 @@ const logout = () => {
                     </Link>
 
                     <Link 
-                        :href="route('admin.dashboard')" 
+                        :href="route('admin.solicitudes.index')" 
                         class="flex items-center gap-3 text-sm text-gray-800 hover:text-blue-700 transition"
                     >
                         <span>Solicitudes 📦</span>
                     </Link>
 
                     <Link 
-                        :href="route('admin.dashboard')" 
+                        :href="route('admin.garantias.en-revision')" 
                         class="flex items-center gap-3 text-sm text-gray-800 hover:text-blue-700 transition"
                     >
-                        <span>Gestionar Garantía 📲</span>
+                        <span>Gestionar Garantía 📲</span> 
                     </Link>
 
-                    <Link 
-                        :href="route('admin.dashboard')" 
-                        class="flex items-center gap-3 text-sm text-gray-800 hover:text-blue-700 transition"
-                    >
-                        <span>Estadísticas 📈</span>
-                    </Link>
+                    
                 </nav>
             </aside>
 

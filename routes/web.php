@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\SolicitudGarantiaController;
 use App\Http\Controllers\EquipoController;
 use App\Http\Controllers\EstadoGarantiaController;
 use App\Http\Controllers\GarantiaController;
@@ -51,6 +52,18 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/equipos', [AdminDashboardController::class, 'store'])->name('dashboard.equipos.store');
 
     Route::get('/solicitudes/{id}', [AdminDashboardController::class, 'show'])->name('solicitudes.show');
+
+    Route::patch('/garantias/{id}/estado', [SolicitudGarantiaController::class, 'cambiarEstado'])
+    ->name('garantias.actualizar-estado');
+
+    Route::get('/garantias/en-revision', [SolicitudGarantiaController::class, 'enRevision'])
+    ->name('garantias.en-revision');
+
+    Route::get('/garantias/{id}/gestion', [SolicitudGarantiaController::class, 'gestion'])
+    ->name('garantias.gestion');
+
+    Route::get('/solicitudes', [SolicitudGarantiaController::class, 'solicitudes'])
+        ->name('solicitudes.index');
 });
 
 require __DIR__.'/auth.php';

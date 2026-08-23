@@ -48,4 +48,9 @@ class SolicitudGarantia extends Model
     {
         return $this->hasMany(AdjuntoGarantia::class, 'id_solicitud', 'id_solicitud');
     }
+
+    public function historialEstados()
+    {
+        return $this->hasMany(HistorialEstado::class, 'id_solicitud', 'id_solicitud');
+    }
 }
